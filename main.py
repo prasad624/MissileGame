@@ -8,6 +8,7 @@ WIDTH, HEIGHT = 720, 700
 pygame.init()
 pygame.mixer.init()
 collect_sound = pygame.mixer.Sound("coin.mp3")
+over_sound = pygame.mixer.Sound("over.mp3")
 win = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("S-400 Dual Missile Catcher ")
 clock = pygame.time.Clock()
@@ -134,10 +135,12 @@ while running:
                 missiles.remove(missile)
                 score += 1
                 collect_sound.play() 
+                
             elif missile[1] > HEIGHT:
                 missiles.remove(missile)
                 lives -= 1
                 if lives <= 0:
+                    over_sound.play()
                     game_over = True
 
         # Display score
