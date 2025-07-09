@@ -12,7 +12,7 @@ pygame.mixer.init()
 collect_sound = pygame.mixer.Sound("coin.mp3")
 over_sound = pygame.mixer.Sound("over.mp3")
 
-# Set up window 
+# Set up window and fonts
 win = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("S-400 Dual Missile Catcher")
 clock = pygame.time.Clock()
@@ -29,7 +29,7 @@ launcher_width, launcher_height = 150, 60
 s400_img = pygame.transform.scale(s400_img, (launcher_width, launcher_height))
 launcher_y = HEIGHT - launcher_height - 20
 
-# Load explosion for bombs to avoid 
+# Load explosion image for bomb
 explosion_img = pygame.image.load("explosion.png").convert_alpha()
 explosion_img = pygame.transform.scale(explosion_img, (180, 80))
 
@@ -41,12 +41,12 @@ for i in range(1, 9):
     img = pygame.transform.rotate(img, 180)
     missile_images.append(img)
 
-# Load bomb
+# Load bomb image
 bomb_img = pygame.image.load("bomb.png").convert_alpha()
 bomb_img = pygame.transform.scale(bomb_img, (50, 80))
 bomb_img = pygame.transform.flip(bomb_img, False, True)
 
-# Game 
+# Game variables
 missiles = []
 missile_speed = 8
 spawn_timer = 0
@@ -54,12 +54,58 @@ spawn_delay = 40
 score = 0
 lives = 1
 game_over = False
+player_name = ""
 
-# Camera 
+# Webcam and hand tracking
 cap = cv2.VideoCapture(0)
 cap.set(3, WIDTH)
 cap.set(4, HEIGHT)
 detector = HandDetector(detectionCon=0.8, maxHands=2)
+
+def get_player_name():
+    global player_name
+    input_active = True
+    name_font = pygame.font.SysFont(None, 50)
+    input_box = pygame.Rect(WIDTH // 2 - 150, HEIGHT // 2, 300, 50)
+    color_inactive = pygame.Color('lightskyblue3')
+    color_active = pygame.Color('dodgerblue2')
+    color = color_inactive
+    user_text = ""
+    active = False
+
+    while input_active:
+        win.fill((255, 255, 255))
+        title = game_over_font.render("Enter Your Name", True, (0, 0, 0))
+        win.blit(title, (WIDTH // 2 - title.get_width() // 2, HEIGHT // 2 - 100))
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if input_box.collidepoint(event.pos):
+                    active = not active
+                else:
+                    active = False
+                color = color_active if active else color_inactive
+            elif event.type == pygame.KEYDOWN:
+                if active:
+                    if event.key == pygame.K_RETURN:
+                        player_name = user_text.strip() or "Player"
+                        input_active = False
+                    elif event.key == pygame.K_BACKSPACE:
+                        user_text = user_text[:-1]
+                    else:
+                        if len(user_text) < 15:
+                            user_text += event.unicode
+
+        txt_surface = name_font.render(user_text, True, (0, 0, 0))
+        width = max(300, txt_surface.get_width() + 10)
+        input_box.w = width
+        win.blit(txt_surface, (input_box.x + 5, input_box.y + 10))
+        pygame.draw.rect(win, color, input_box, 2)
+        pygame.display.flip()
+        clock.tick(30)
 
 def show_intro_screen():
     waiting = True
@@ -81,21 +127,11 @@ def show_intro_screen():
         base_y = 450
         line_height = instruction_font_size + 10
         for i, line in enumerate(instructions):
-            if instruction_font.size(line)[0] > WIDTH - 40:
-                words = line.split(" ")
-                mid = len(words) // 2
-                line1 = " ".join(words[:mid])
-                line2 = " ".join(words[mid:])
-                for j, subline in enumerate([line1, line2]):
-                    rendered = instruction_font.render(subline, True, (0, 0, 0))
-                    win.blit(rendered, (WIDTH // 2 - rendered.get_width() // 2, base_y + (i * 2 + j) * (line_height // 2)))
-            else:
-                rendered = instruction_font.render(line, True, (0, 0, 0))
-                win.blit(rendered, (WIDTH // 2 - rendered.get_width() // 2, base_y + i * line_height))
+            rendered = instruction_font.render(line, True, (0, 0, 0))
+            win.blit(rendered, (WIDTH // 2 - rendered.get_width() // 2, base_y + i * line_height))
 
         prompt = font.render("Press SPACE to Start", True, (50, 50, 50))
         win.blit(prompt, (WIDTH // 2 - prompt.get_width() // 2, HEIGHT - 50))
-
         pygame.display.update()
 
         for event in pygame.event.get():
@@ -113,7 +149,7 @@ def reset_game():
     lives = 1
     game_over = False
 
-# Show intro screen
+get_player_name()
 show_intro_screen()
 
 # Game loop
@@ -181,7 +217,6 @@ while running:
         for missile in missiles[:]:
             missile[1] += missile_speed
             win.blit(missile[2], (missile[0] - 20, missile[1]))
-
             caught = False
             if launcher_left and launcher_left.collidepoint(missile[0], missile[1] + 40):
                 caught = True
@@ -215,7 +250,7 @@ while running:
         win.blit(score_text, (20, 20))
     else:
         over_text = game_over_font.render("GAME OVER", True, (255, 0, 0))
-        final_score = font.render(f"Your Score: {score}", True, (0, 0, 0))
+        final_score = font.render(f"{player_name}'s Score: {score}", True, (0, 0, 0))
         restart_text = font.render("Press R to Restart", True, (0, 0, 0))
         win.blit(over_text, (WIDTH//2 - over_text.get_width()//2, HEIGHT//2 - 120))
         win.blit(final_score, (WIDTH//2 - final_score.get_width()//2, HEIGHT//2 - 30))
@@ -224,6 +259,7 @@ while running:
     pygame.display.update()
     clock.tick(60)
 
+# Cleanup
 cap.release()
 cv2.destroyAllWindows()
 pygame.quit()
