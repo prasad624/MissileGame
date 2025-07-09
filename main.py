@@ -19,7 +19,11 @@ clock = pygame.time.Clock()
 font = pygame.font.SysFont(None, 64)
 game_over_font = pygame.font.SysFont(None, 100)
 
-# Load logo
+# Load intro screen image
+intro_img = pygame.image.load("intro_screen.png").convert()
+intro_img = pygame.transform.scale(intro_img, (WIDTH, HEIGHT))
+
+# Load logo (optional fallback for older intro)
 logo_img = pygame.image.load("logo.png").convert_alpha()
 logo_img = pygame.transform.scale(logo_img, (300, 300))
 
@@ -109,36 +113,15 @@ def get_player_name():
 
 def show_intro_screen():
     waiting = True
-    instruction_font_size = 32 if WIDTH < 800 else 36
-    instruction_font = pygame.font.SysFont(None, instruction_font_size)
-    instructions = [
-        "Use your LEFT and RIGHT hand to control two launchers",
-        "Catch the falling missiles (PK Missiles)",
-        "Avoid catching the bombs with fire (they end the game)",
-        "Score increases by 1 for each missile caught",
-    ]
-
     while waiting:
-        win.fill((255, 255, 255))
-        title = game_over_font.render("S-400 Missile Catcher", True, (0, 0, 0))
-        win.blit(title, (WIDTH // 2 - title.get_width() // 2, 40))
-        win.blit(logo_img, (WIDTH // 2 - logo_img.get_width() // 2, 120))
-
-        base_y = 450
-        line_height = instruction_font_size + 10
-        for i, line in enumerate(instructions):
-            rendered = instruction_font.render(line, True, (0, 0, 0))
-            win.blit(rendered, (WIDTH // 2 - rendered.get_width() // 2, base_y + i * line_height))
-
-        prompt = font.render("Press SPACE to Start", True, (50, 50, 50))
-        win.blit(prompt, (WIDTH // 2 - prompt.get_width() // 2, HEIGHT - 50))
+        win.blit(intro_img, (0, 0))
         pygame.display.update()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 exit()
-            elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
                 waiting = False
 
 def reset_game():
@@ -263,3 +246,4 @@ while running:
 cap.release()
 cv2.destroyAllWindows()
 pygame.quit()
+
