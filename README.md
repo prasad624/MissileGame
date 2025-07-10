@@ -68,5 +68,10 @@ python main.py
 - 🏆 Leaderboard system
 
 ---
+## 🎮 Play the Game
+
+[⬇️ Download Missile Game v1.0 (.zip)](https://github.com/YOUR_USERNAME/YOUR_REPO/releases/download/v1.0/MissileGame-v1.zip)
+
+Just unzip and run `main.exe` — no install needed!
 
 > Made with ❤️ using Python, OpenCV, Pygame & MediaPipe
